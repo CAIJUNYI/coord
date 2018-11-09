@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option go_package = "coordtransform";
+
+package coordtransform;
+
+service CoordTransform {
+    rpc GCJ02ToWGS84 (Point) returns (Point);
+
+    rpc WGS84ToGCJ02 (Point) returns (Point);
+
+    rpc Bd09ToGCJ02 (Point) returns (Point);
+
+    rpc GCJ02ToBd09 (Point) returns (Point);
+
+    rpc Bd09ToWGS84 (Point) returns (Point);
+
+    rpc WGS84ToBd09 (Point) returns (Point);
+}
+
+message Point {
+    double lat = 1;
+    double lon = 2;
+}
+
