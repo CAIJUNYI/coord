@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	ct "github.com/CAIJUNYI/coord/coordtransform"
+	ct "github.com/junyicc/coord/coordtransform"
 	"google.golang.org/grpc"
 )
 
@@ -38,13 +38,13 @@ func main() {
 	pnt := newPoint(37.065, 128.543)
 	gcjPnt, err := client.WGS84ToGCJ02(ctx, pnt)
 	if err != nil {
-		log.Fatalf("failed to transform %v from wgs84 to gcj02", *pnt)
+		log.Fatalf("failed to transform (%f, %f) from wgs84 to gcj02", pnt.Lat, pnt.Lon)
 	}
 	fmt.Println("gcj02 coordinate:", gcjPnt)
 
 	bdPnt, err := client.WGS84ToBd09(ctx, pnt)
 	if err != nil {
-		log.Fatalf("failed to transform %v from wgs84 to bd09", *pnt)
+		log.Fatalf("failed to transform (%f, %f) from wgs84 to bd09", pnt.Lat, pnt.Lon)
 	}
 	fmt.Println("bd09 coordinate:", bdPnt)
 }

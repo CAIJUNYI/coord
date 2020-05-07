@@ -8,7 +8,7 @@ import (
 	"math"
 	"net"
 
-	ct "github.com/CAIJUNYI/coord/coordtransform"
+	ct "github.com/junyicc/coord/coordtransform"
 	"google.golang.org/grpc"
 )
 
@@ -55,7 +55,7 @@ type coordTransformServer struct {
 
 func (s *coordTransformServer) GCJ02ToWGS84(ctx context.Context, p *ct.Point) (*ct.Point, error) {
 	if !inChina(p) {
-		return nil, fmt.Errorf("%v out of China", *p)
+		return nil, fmt.Errorf("(%f, %f) out of China", p.Lat, p.Lon)
 	}
 	dlat := transformlat(p.Lon-105.0, p.Lat-35.0)
 	dlng := transformlon(p.Lon-105.0, p.Lat-35.0)
@@ -74,7 +74,7 @@ func (s *coordTransformServer) GCJ02ToWGS84(ctx context.Context, p *ct.Point) (*
 }
 func (s *coordTransformServer) WGS84ToGCJ02(ctx context.Context, p *ct.Point) (*ct.Point, error) {
 	if !inChina(p) {
-		return nil, fmt.Errorf("%v out of China", *p)
+		return nil, fmt.Errorf("(%f, %f) out of China", p.Lat, p.Lon)
 	}
 	dlat := transformlat(p.Lon-105.0, p.Lat-35.0)
 	dlng := transformlon(p.Lon-105.0, p.Lat-35.0)
@@ -136,8 +136,10 @@ func main() {
 	}
 	s := grpc.NewServer()
 	ct.RegisterCoordTransformServer(s, &coordTransformServer{})
-	err = s.Serve(l)
-	if err != nil {
-		log.Fatalf("failed to serve: %v", err)
+	for {
+		err = s.Serve(l)
+		if err != nil {
+			log.Fatalf("failed to serve: %v", err)
+		}
 	}
 }
