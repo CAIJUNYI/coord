@@ -7,6 +7,9 @@ import (
 	"log"
 	"math"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
 	ct "github.com/junyicc/coord/coordtransform"
 	"google.golang.org/grpc"
@@ -51,6 +54,10 @@ func transformlon(lon, lat float64) float64 {
 }
 
 type coordTransformServer struct {
+}
+
+func NewCoordTransformServer() *coordTransformServer {
+	return &coordTransformServer{}
 }
 
 func (s *coordTransformServer) GCJ02ToWGS84(ctx context.Context, p *ct.Point) (*ct.Point, error) {
@@ -130,16 +137,38 @@ func (s *coordTransformServer) WGS84ToBd09(ctx context.Context, p *ct.Point) (*c
 
 func main() {
 	flag.Parse()
+
+	// new coord transform server
+	ctServer := NewCoordTransformServer()
+
+	// new grpc server
+	s := grpc.NewServer()
+	ct.RegisterCoordTransformServer(s, ctServer)
+	handleSignal(s)
+
+	// listen port
 	l, err := net.Listen("tcp", *host+":"+*port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	s := grpc.NewServer()
-	ct.RegisterCoordTransformServer(s, &coordTransformServer{})
 	for {
 		err = s.Serve(l)
 		if err != nil {
 			log.Fatalf("failed to serve: %v", err)
 		}
 	}
+}
+
+func handleSignal(grpcServer *grpc.Server) {
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+	go func() {
+		sig := <-sigCh
+		log.Printf("Got signal %v to exit.", sig)
+		grpcServer.Stop()
+	}()
 }
